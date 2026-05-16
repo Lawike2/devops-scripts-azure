@@ -83,12 +83,6 @@ Re-running the script
 ---------------------
 The script is generally idempotent for apt packages (it checks dpkg before installing). It is safe to re-run; already-installed packages will be skipped.
 
-Want improvements?
-------------------
-If you want, I can:
-- Add a short wrapper to accept named flags instead of positional args (safer for manual runs).
-- Add more robust checks for distribution and package sources.
-
 License
 -------
 Free to use and adapt; review before running in production environments.

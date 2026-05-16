@@ -1,0 +1,131 @@
+# ------------------------------------------------------------------------------
+# General
+# ------------------------------------------------------------------------------
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+# ------------------------------------------------------------------------------
+# Image
+# ------------------------------------------------------------------------------
+image:
+  repository: elumole22/mcp-chatbot
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# ------------------------------------------------------------------------------
+# Service Account
+# ------------------------------------------------------------------------------
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# ------------------------------------------------------------------------------
+# Pod metadata
+# ------------------------------------------------------------------------------
+podAnnotations: {}
+podLabels: {}
+
+# ------------------------------------------------------------------------------
+# Security contexts
+# ------------------------------------------------------------------------------
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false   # Streamlit writes tmp files at runtime
+  capabilities:
+    drop:
+      - ALL
+
+# ------------------------------------------------------------------------------
+# Service
+# ------------------------------------------------------------------------------
+service:
+  type: ClusterIP
+  port: 8501
+  targetPort: 8501
+
+# ------------------------------------------------------------------------------
+# Ingress
+# ------------------------------------------------------------------------------
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: mcp-chatbot.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  # - secretName: mcp-chatbot-tls
+  #   hosts:
+  #     - mcp-chatbot.example.com
+
+# ------------------------------------------------------------------------------
+# Resources
+# ------------------------------------------------------------------------------
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# ------------------------------------------------------------------------------
+# Health probes
+# Streamlit exposes a /_stcore/health endpoint
+# ------------------------------------------------------------------------------
+livenessProbe:
+  enabled: true
+  path: /_stcore/health
+  initialDelaySeconds: 15
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  path: /_stcore/health
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# ------------------------------------------------------------------------------
+# Application config
+# MCP_SERVER_URL  — internal cluster URL of the mcp-server service
+# OPENAI_API_KEY  — injected from a Kubernetes Secret (see below)
+# ------------------------------------------------------------------------------
+mcpServerUrl: "http://mcp-server.mcp-server.svc.cluster.local:8080"
+
+# Name of a pre-existing Kubernetes Secret that holds OPENAI_API_KEY.
+# Create it once with:
+#   kubectl create secret generic mcp-chatbot-secrets \
+#     --from-literal=OPENAI_API_KEY=sk-... \
+#     -n <namespace>
+openaiSecretName: "mcp-chatbot-secrets"
+openaiSecretKey: "OPENAI_API_KEY"
+
+# Extra arbitrary env vars (plain values only — use openaiSecretName for secrets)
+env: []
+# - name: STREAMLIT_THEME_BASE
+#   value: dark
+
+# ------------------------------------------------------------------------------
+# Scheduling
+# ------------------------------------------------------------------------------
+nodeSelector: {}
+tolerations: []
+affinity: {}

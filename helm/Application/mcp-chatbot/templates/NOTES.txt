@@ -1,0 +1,19 @@
+MCP Chatbot has been deployed!
+
+Access the Streamlit UI:
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else }}
+  kubectl port-forward svc/{{ include "mcp-chatbot.fullname" . }} 8501:8501 -n {{ .Release.Namespace }}
+  Then open: http://localhost:8501
+{{- end }}
+
+⚠️  Make sure the secret holding your OpenAI API key exists:
+
+  kubectl create secret generic {{ .Values.openaiSecretName }} \
+    --from-literal={{ .Values.openaiSecretKey }}=sk-... \
+    -n {{ .Release.Namespace }}
+
+MCP Server URL configured: {{ .Values.mcpServerUrl }}
