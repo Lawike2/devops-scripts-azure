@@ -2,15 +2,15 @@
 # Uncomment and configure when ready to promote to production.
 #
 # Prerequisites:
-#   - mcp-chatbot-secrets must exist in the mcp-chatbot-prod namespace:
+#   - mcp-chatbot-secrets must exist in the kuberniq-chat-prod namespace:
 #     kubectl create secret generic mcp-chatbot-secrets \
 #       --from-literal=OPENAI_API_KEY=sk-... \
-#       -n mcp-chatbot-prod
+#       -n kuberniq-chat-prod
 
 # apiVersion: argoproj.io/v1alpha1
 # kind: Application
 # metadata:
-#   name: mcp-chatbot-prod
+#   name: kuberniq-chat-prod
 #   namespace: argocd
 # spec:
 #   project: default
@@ -34,7 +34,7 @@
 #           value: 'mcp-chatbot.example.com'
 #   destination:
 #     server: 'https://kubernetes.default.svc'
-#     namespace: mcp-chatbot-prod
+#     namespace: kuberniq-chat-prod
 #   syncPolicy:
 #     automated:
 #       prune: true

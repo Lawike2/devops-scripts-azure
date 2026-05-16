@@ -1,23 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: mcp-server-dev
+  name: kuberniq-chat-dev
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/oluwaTG/azure-devops-scripts'
+    repoURL: 'https://github.com/oluwaTG/kuberniq'
     targetRevision: main
-    path: ./helm/Application/mcp-server
+    path: ./helm/Application/kuberniq-chat
     helm:
       valueFiles:
         - values.yaml
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: mcp-server-dev
+    namespace: kuberniq-chat-dev
   syncPolicy:
     automated:
-      enabled: true
       prune: true
       selfHeal: true
     syncOptions:
