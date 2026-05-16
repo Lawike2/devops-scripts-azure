@@ -37,11 +37,6 @@ spec:
           env:
             - name: MCP_SERVER_URL
               value: {{ .Values.mcpServerUrl | quote }}
-            - name: OPENAI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.openaiSecretName }}
-                  key: {{ .Values.openaiSecretKey }}
             {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

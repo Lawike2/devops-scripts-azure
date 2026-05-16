@@ -58,7 +58,7 @@ service:
 # Ingress
 # ------------------------------------------------------------------------------
 ingress:
-  enabled: false
+  enabled: true
   className: nginx
   annotations: {}
     # cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -105,23 +105,36 @@ readinessProbe:
 
 # ------------------------------------------------------------------------------
 # Application config
-# MCP_SERVER_URL  — internal cluster URL of the mcp-server service
-# OPENAI_API_KEY  — injected from a Kubernetes Secret (see below)
 # ------------------------------------------------------------------------------
 mcpServerUrl: "http://mcp-server.mcp-server.svc.cluster.local:8080"
 
-# Name of a pre-existing Kubernetes Secret that holds OPENAI_API_KEY.
-# Create it once with:
-#   kubectl create secret generic mcp-chatbot-secrets \
-#     --from-literal=OPENAI_API_KEY=sk-... \
-#     -n <namespace>
-openaiSecretName: "mcp-chatbot-secrets"
-openaiSecretKey: "OPENAI_API_KEY"
-
-# Extra arbitrary env vars (plain values only — use openaiSecretName for secrets)
-env: []
-# - name: STREAMLIT_THEME_BASE
-#   value: dark
+# Pass OPENAI_API_KEY however suits your setup — plain value, secretKeyRef,
+# Azure Key Vault CSI, or any other valueFrom source.
+# Examples:
+#
+# Plain value (dev / local testing):
+#   env:
+#     - name: OPENAI_API_KEY
+#       value: "sk-..."
+#
+# Kubernetes Secret:
+#   env:
+#     - name: OPENAI_API_KEY
+#       valueFrom:
+#         secretKeyRef:
+#           name: mcp-chatbot-secrets
+#           key: OPENAI_API_KEY
+#
+# Azure Key Vault (CSI driver — mounts secret as env var via SecretProviderClass):
+#   env:
+#     - name: OPENAI_API_KEY
+#       valueFrom:
+#         secretKeyRef:
+#           name: mcp-chatbot-akv-sync   # synced by the CSI driver
+#           key: OPENAI_API_KEY
+env:
+  - name: OPENAI_API_KEY
+    value: "replace-me"
 
 # ------------------------------------------------------------------------------
 # Scheduling
