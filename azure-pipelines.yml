@@ -38,9 +38,12 @@ steps:
 - task: DotNetCoreCLI@2
   displayName: 'Publish .NET app for deployment'
   inputs:
-    command: 'publish'
-    publishWebProjects: true
-    arguments: '--output $(Build.ArtifactStagingDirectory)'
+    # command: 'publish'
+    # publishWebProjects: true
+    # arguments: '--output $(Build.ArtifactStagingDirectory)'
+    publishWebProjects: false
+    projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
+    arguments: '--configuration $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)'
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish artifact (downloadable binaries)'
