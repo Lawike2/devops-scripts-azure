@@ -38,7 +38,7 @@ steps:
 - task: DotNetCoreCLI@2
   displayName: 'Publish .NET app for deployment'
   inputs:
-    # command: 'publish'
+    command: 'publish'
     # publishWebProjects: true
     # arguments: '--output $(Build.ArtifactStagingDirectory)'
     publishWebProjects: false
