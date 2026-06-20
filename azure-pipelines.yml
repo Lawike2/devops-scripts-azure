@@ -53,8 +53,11 @@ stages:
           displayName: 'Publish .NET app'
           inputs:
             command: 'publish'
+            # projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
+            # arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/publish'
+            # publishWebProjects: false
             projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
-            arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/publish'
+            arguments: '--configuration $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)'
             zipAfterPublish: true
 
 # Zip publish output for App Service deployment
