@@ -1,0 +1,49 @@
+
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - devops-helper/**
+
+pool:
+  vmImage: windows-latest
+
+variables:
+  - name: buildConfiguration
+    value: 'Release'
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Use .NET 8 Core sdk'
+  inputs:
+    packageType: 'sdk'
+    version: '8.x'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Restore nuget packages'
+  inputs:
+    command: 'restore'
+    projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
+    feedsToUse: 'select'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build .NET app for deployment'
+  inputs:
+    command: 'build'
+    projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
+    arguments: --configuration $(buildConfiguration) --no-restore
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publish .NET app for deployment'
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
+    arguments: '--output $(Build.ArtifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish artifact (downloadable binaries)'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
