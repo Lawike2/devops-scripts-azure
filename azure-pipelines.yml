@@ -56,9 +56,10 @@ stages:
             # projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
             # arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/publish'
             projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
-            arguments: '--configuration $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)'
+            # arguments: '--configuration $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)'
+            arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/publish'
             publishWebProjects: false
-            # zipAfterPublish: true
+            zipAfterPublish: true
 
 # Zip publish output for App Service deployment
         - task: PublishBuildArtifacts@1
