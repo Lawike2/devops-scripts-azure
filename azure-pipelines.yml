@@ -1,11 +1,10 @@
-
 trigger:
   branches:
     include:
-    - main
+      - main
   paths:
     include:
-    - devops-helper/**
+      - devops-helper/**
 
 pool:
   vmImage: windows-latest
@@ -14,39 +13,81 @@ variables:
   - name: buildConfiguration
     value: 'Release'
 
-steps:
-- task: UseDotNet@2
-  displayName: 'Use .NET 8 Core sdk'
-  inputs:
-    packageType: 'sdk'
-    version: '8.x'
+  - name: azureServiceConnection
+    value: 'AzureAppConnection'
 
-- task: DotNetCoreCLI@2
-  displayName: 'Restore nuget packages'
-  inputs:
-    command: 'restore'
-    projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
-    feedsToUse: 'select'
+  - name: appServiceName
+    value: 'lawtechweb-app'
 
-- task: DotNetCoreCLI@2
-  displayName: 'Build .NET app for deployment'
-  inputs:
-    command: 'build'
-    projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
-    arguments: --configuration $(buildConfiguration) --no-restore
+stages:
+# =========================
+# Stage 1: Build
+# =========================
+- stage: Build
+  displayName: "Build & Publish Artifact"
+  jobs:
+    - job: BuildJob
+      displayName: "Build Job"
+      steps:
+        - task: UseDotNet@2
+          displayName: 'Use .NET 8 SDK'
+          inputs:
+            packageType: 'sdk'
+            version: '8.x'
 
-- task: DotNetCoreCLI@2
-  displayName: 'Publish .NET app for deployment'
-  inputs:
-    command: 'publish'
-    # publishWebProjects: true
-    # arguments: '--output $(Build.ArtifactStagingDirectory)'
-    publishWebProjects: false
-    projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
-    arguments: '--configuration $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)'
+        - task: DotNetCoreCLI@2
+          displayName: 'Restore NuGet packages'
+          inputs:
+            command: 'restore'
+            projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
+            feedsToUse: 'select'
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish artifact (downloadable binaries)'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
+        - task: DotNetCoreCLI@2
+          displayName: 'Build .NET app'
+          inputs:
+            command: 'build'
+            projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
+            arguments: '--configuration $(buildConfiguration) --no-restore'
+
+        - task: DotNetCoreCLI@2
+          displayName: 'Publish .NET app'
+          inputs:
+            command: 'publish'
+            projects: '$(System.DefaultWorkingDirectory)/devops-helper/src/DevOpsHelper.Api/DevOpsHelper.Api.csproj'
+            arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/publish'
+            zipAfterPublish: true
+
+# Zip publish output for App Service deployment
+        - task: PublishBuildArtifacts@1
+          displayName: 'Publish artifact'
+          inputs:
+            PathtoPublish: '$(Build.ArtifactStagingDirectory)/publish'
+            ArtifactName: 'drop'
+
+# =========================
+# Stage 2: Deploy
+# =========================
+- stage: Deploy
+  displayName: "Deploy to Azure App Service"
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+    - deployment: DeployWeb
+      displayName: "Deploy Web App"
+      environment: "dev"
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+# Download artifact from Build stage
+              - download: current
+                artifact: drop
+
+# Deploy zip to Azure App Service
+              - task: AzureWebApp@1
+                displayName: 'Deploy to Azure App Service'
+                inputs:
+                  azureSubscription: '$(azureServiceConnection)'
+                  appType: 'webApp'
+                  appName: '$(appServiceName)'
+                  package: '$(Pipeline.Workspace)/drop/**/*.zip'
